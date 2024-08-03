@@ -69,13 +69,17 @@ def get_text_for_indexing(richtext):
     like Django's strip_tags, but ensures that whitespace is left between block elements
     so that <p>hello</p><p>world</p> gives "hello world", not "helloworld".
     """
-    # insert space after </p>, </h1> - </h6>, </li> and </blockquote> tags
+    # Insert space after </p>, </h1> - </h6>, </li> and </blockquote> tags
     richtext = re.sub(
-        r"(</(p|h\d|li|blockquote)>)", r"\1 ", richtext, flags=re.IGNORECASE
+        r"</(p|h\d|li|blockquote)>", r" \g<0> ", richtext, flags=re.IGNORECASE
     )
-    # also insert space after <br /> and <hr />
-    richtext = re.sub(r"(<(br|hr)\s*/>)", r"\1 ", richtext, flags=re.IGNORECASE)
-    return unescape(strip_tags(richtext).strip())
+    # Also insert space after <br /> and <hr />
+    richtext = re.sub(r"<(br|hr)\s*/>", r" \g<0> ", richtext, flags=re.IGNORECASE)
+    # Strip HTML tags and preserve Cyrillic characters and monetary symbols
+    plain_text = strip_tags(richtext)
+    plain_text = re.sub(r'[^\w\s\u0400-\u04FF\u0500-\u052F\u0024\u20AC\u00A5\u00A2\u20B9]', ' ', plain_text)
+    
+    return unescape(plain_text).strip()
 
 
 class RichText:
